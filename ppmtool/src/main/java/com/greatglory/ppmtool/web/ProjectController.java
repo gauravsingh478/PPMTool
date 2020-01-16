@@ -1,6 +1,7 @@
 package com.greatglory.ppmtool.web;
 
 import com.greatglory.ppmtool.domain.Project;
+import com.greatglory.ppmtool.services.MapValidatorErrorService;
 import com.greatglory.ppmtool.services.ProjectService;
 import com.sun.javafx.collections.MappingChange;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +23,13 @@ import java.util.Map;
 public class ProjectController {
     @Autowired
     private ProjectService projectService;
+    @Autowired
+    private MapValidatorErrorService mapValidatorErrorService;
     @PostMapping("")
     public ResponseEntity<?> createNewProject(@Valid @RequestBody Project project, BindingResult result){
 
-        if(result.hasErrors()){
-            Map<String, String> errMap= new HashMap<>();
-            for(FieldError error: result.getFieldErrors())
-                errMap.put(error.getField(), error.getDefaultMessage());
-            return new ResponseEntity<Map<String,String>>(errMap, HttpStatus.BAD_REQUEST);}
+        ResponseEntity<?> errMap = mapValidatorErrorService.MapValidation(result);
+        if(errMap!=null) return errMap;
 
         Project project1 = projectService.saveOrUpdateProject(project);
         return new ResponseEntity<Project>(project, HttpStatus.CREATED);
